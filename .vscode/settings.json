@@ -1,0 +1,10 @@
+{
+    "files.exclude": {
+        "**/mysql-data": true,
+        "**/node_modules": true
+    },
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+        "view.php": "view.php.ts,view.php.scss"
+    }
+}

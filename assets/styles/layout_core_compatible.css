@@ -1,0 +1,17 @@
+.person-picture {
+    align-items: center;
+    background-color: #dcdcdc;
+    border-radius: 50%;
+    display: flex;
+    height: 28px;
+    justify-content: center;
+    margin: 0 10px;
+    overflow: hidden;
+    position: relative;
+    width: 28px;
+}
+
+.person-picture .image {
+    height: 100%;
+    width: 100%;
+}

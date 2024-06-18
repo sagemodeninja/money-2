@@ -1,0 +1,56 @@
+body {
+    background-color: #fafafa;
+    margin: 0;
+    min-height: 100vh;
+}
+
+.core-context {
+    background-color: rgba(240, 240, 240, 0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border: solid 1px #9e9e9e;
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    left: -110px;
+    max-height: 20px;
+    min-height: 20px;
+    opacity: 0.3;
+    padding: 4px 0;
+    position: fixed;
+    top: -20px;
+    max-width: 110px;
+    min-width: 110px;
+    z-index: 4;
+}
+
+.core-context.active {
+    max-height: none;
+    max-width: none;
+    opacity: 1;
+    transition: opacity 0.15s;
+}
+
+.core-context-action {
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    color: #000;
+    cursor: pointer;
+    font-family: "Inter", sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    margin: 0;
+    outline: none !important;
+    padding: 5px 15px;
+    text-align: left;
+    -webkit-user-select: none;
+    user-select: none;
+    user-select: none;
+}
+
+.core-context-action:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+    color: var(--primary-color-dark);
+    transition: background-color 0.2s;
+}

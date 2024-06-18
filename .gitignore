@@ -1,0 +1,10 @@
+# Development
+.env
+mysql-data
+build
+
+# Node
+**/node_modules
+
+# macOS
+.DS_Store
