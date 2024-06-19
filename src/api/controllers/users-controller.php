@@ -5,7 +5,7 @@
     use Api\Data\DataContext;
     use Framework\Api\Attributes\Get;
 
-    class AccountsController extends ControllerBase {
+    class UsersController extends ControllerBase {
         private readonly DataContext $context;
 
         public function __construct()
@@ -15,9 +15,9 @@
 
         #[Get]
         public function GetAll() {
-            $query = 'SELECT a.`Id`, a.`Shortcode`, a.`Title`, a.`CategoryId`, a.`AccountNumber`, a.`BankIcon` FROM `account` a WHERE a.`Status` = 1;';
-            $accounts = $this->context->accounts->fetchAll($query);
-            return $this->Ok($accounts);
+            $query = 'SELECT u.`Id`, u.`EmailAddress` FROM `users` u;';
+            $users = $this->context->users->fetchAll($query);
+            return $this->Ok($users);
         }
     }
 ?>
