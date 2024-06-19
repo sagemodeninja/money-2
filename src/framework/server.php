@@ -4,8 +4,9 @@
     use Framework\Middleware\RequestMiddleware;
     use Framework\Middleware\StaticFilesMiddleware;
     use Framework\Middleware\ViewMiddleware;
+    use Framework\Middleware\ApiMiddleware;
 
-    class App
+    class Server
     {
         public function run()
         {
@@ -14,6 +15,7 @@
             # Register middlewares
             $middleware->addMiddleware(StaticFilesMiddleware::class);
             $middleware->addMiddleware(ViewMiddleware::class);
+            $middleware->addMiddleware(ApiMiddleware::class);
 
             $request = new HttpRequest($_SERVER);
             $response = $middleware->handleRequest($request);

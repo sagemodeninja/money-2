@@ -1,7 +1,7 @@
 <?php
     include_once "framework/autoload.php";
-    include_once "framework/app.php";
+    include_once "framework/server.php";
 
-    $app = new App();
+    $app = new Server();
     $app->run();
 ?>

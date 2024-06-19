@@ -2,6 +2,7 @@ const path = require('path')
 const autoload = require('./autoload')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
+const FrameworkCompilerPlugin = require('./framework-compiler')
 
 module.exports = (_, {mode}) => {
     const isDevelopment = mode === 'development'
@@ -23,10 +24,12 @@ module.exports = (_, {mode}) => {
                     './src/.htaccess',
                     './src/index.php',
                     { from: './src/framework', to: 'framework' },
+                    { from: './src/api', to: 'api' },
                     { from: './src/static', to: 'static' },
                     ...autoload.loadLayouts('./src'),
                 ]
             }),
+            new FrameworkCompilerPlugin()
         ],
         module: {
             rules: [

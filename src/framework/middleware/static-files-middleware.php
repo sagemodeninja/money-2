@@ -15,7 +15,7 @@
 
         public function invoke(HttpRequest $request)
         {
-            $path = $request->uri->path;
+            $path = $request->path;
 
             if (self::isStaticFile($path))
             {
@@ -23,8 +23,6 @@
                 {
                     $content = file_get_contents($path);
                     $contentType = self::getContentType($path);
-
-                    // echo ">>$contentType<<";
 
                     $response = new HttpResponse(200, $content);
                     $response->addHeader('Content-Type', $contentType);

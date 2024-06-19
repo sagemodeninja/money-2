@@ -4,11 +4,11 @@
     class HttpRequest
     {
         public string $method;
-        public RequestUri $uri;
+        public string $path;
 
         public function __construct(array $server) {
             $this->method = ucfirst(strtolower($server['REQUEST_METHOD']));
-            $this->uri = new RequestUri($server['REQUEST_URI']);
+            $this->path = trim(parse_url($server['REQUEST_URI'])['path'], '/');
         }
     }
 ?>

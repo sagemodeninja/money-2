@@ -7,9 +7,16 @@
     
     class ViewMiddleware
     {
+        private $next;
+
+        public function __construct(callable $next)
+        {
+            $this->next = $next;
+        }
+
         public function invoke(HttpRequest $request)
         {
-            $path = $request->uri->path;
+            $path = $request->path;
 
             if (empty($path))
             {
@@ -21,7 +28,7 @@
             
             if (!file_exists($file))
             {
-                return new HttpResponse(404);
+                return call_user_func($this->next, $request);
             }
 
             # Crawl through the path and look for layouts...
