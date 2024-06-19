@@ -14,6 +14,7 @@
   "author": "Gary Antier <contact@garyantier.com> (https://garyantier.com)",
   "license": "ISC",
   "devDependencies": {
+    "@types/animejs": "^3.1.12",
     "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^7.1.2",
     "html-webpack-plugin": "^5.6.0",
@@ -24,5 +25,11 @@
     "typescript": "^5.4.5",
     "webpack": "^5.92.0",
     "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "@sagemodeninja/custom-component": "^2.0.6",
+    "@sagemodeninja/fluent-command-bar-component": "^2.0.2",
+    "animejs": "^3.2.2",
+    "axios": "^1.7.2"
   }
 }

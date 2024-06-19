@@ -6,7 +6,7 @@
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
 		"paths": {
-		  "@/*": ["./src/*"]
+		  "@/*": ["./src/scripts/*"]
 		}
 	},
 	"include": ["src/**/*"],

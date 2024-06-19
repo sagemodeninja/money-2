@@ -1,5 +1,5 @@
 const path = require('path')
-const autoDiscovery = require('./autoload')
+const autoload = require('./autoload')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 
@@ -7,21 +7,24 @@ module.exports = (_, {mode}) => {
     const isDevelopment = mode === 'development'
     
     return {
-        entry: autoDiscovery.lookupEntries('./src'),
+        entry: autoload.loadEntries('./src'),
         output: {
             filename: isDevelopment ? '[name].js' : '[name].[contenthash].js',
             path: path.resolve(__dirname, 'build'),
             clean: true,
         },
         plugins: [
-            ...autoDiscovery.lookupViews('./src'),
+            ...autoload.loadViews('./src/views'),
             new MiniCssExtractPlugin({
                 filename: isDevelopment ? '[name].css' : '[name].[contenthash].css'
             }),
             new CopyPlugin({
                 patterns: [
                     './src/.htaccess',
-                    './src/index.php'
+                    './src/index.php',
+                    { from: './src/framework', to: 'framework' },
+                    { from: './src/static', to: 'static' },
+                    ...autoload.loadLayouts('./src'),
                 ]
             }),
         ],
@@ -45,7 +48,7 @@ module.exports = (_, {mode}) => {
         resolve: {
             extensions: ['.ts', '.js'],
             alias: {
-                '@': path.resolve(__dirname, 'src'),
+                '@': path.resolve(__dirname, 'src/scripts'),
             }
         },
         devtool: isDevelopment ? 'inline-source-map' : false

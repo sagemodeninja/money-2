@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const fileTest = /^(view)\.php(\.ts)?$/;
+const fileTest = /^(view|layout)\.php(\.ts)?$/;
 const scriptTest = /\.ts$/;
 
 function lookupFiles(directory, route = '') {
@@ -19,7 +19,7 @@ function lookupFiles(directory, route = '') {
         }
 
         if (fileTest.test(file)) {
-            const type = scriptTest.test(file) ? 'script' : 'view';
+            const type = getFileType(file)
             
             files.push({
                 route,
@@ -33,7 +33,17 @@ function lookupFiles(directory, route = '') {
     return files;
 }
 
-function lookupViews(directory) {
+function getFileType(file) {
+    if (file === 'layout.php')
+        return 'layout'
+
+    if (scriptTest.test(file))
+        return 'entry'
+
+    return 'view'
+}
+
+function loadViews(directory) {
     const files = lookupFiles(directory);
 
     return files
@@ -41,23 +51,38 @@ function lookupViews(directory) {
             .map(file => {
                 return new HtmlWebpackPlugin({
                     template: file.path,
-                    filename: path.join(file.route, 'index.php'),
+                    filename: path.join('views', file.route, 'index.php'),
                     chunks: [file.chunk]
                 })
             });
 }
 
-function lookupEntries(directory) {
+function loadEntries(directory) {
     const files = lookupFiles(directory);
 
     return files
-            .filter(file => file.type === 'script')
+            .filter(file => file.type === 'entry')
             .reduce((entries, file) => {
                 return { ...entries, [file.chunk]: file.path }
             }, {});
 }
 
+function loadLayouts(directory) {
+    const files = lookupFiles(directory);
+
+    return files
+            .filter(file => file.type === 'layout')
+            .reduce((patterns, file) => {
+                const layout = path.join(file.route, 'layout.php')
+                return [ ...patterns, {
+                    from: file.path,
+                    to: layout
+                }]
+            }, []);
+}
+
 module.exports = {
-    lookupViews,
-    lookupEntries
+    loadViews,
+    loadEntries,
+    loadLayouts
 }
