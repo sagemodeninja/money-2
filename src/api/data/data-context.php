@@ -1,11 +1,11 @@
 <?php
     namespace Api\Data;
 
-    use Framework\Api\DatabaseContext;
-    use Framework\Api\DatabaseModel;
-    use Framework\Api\DatabaseContextBuilder;
-    use Api\Models\AccountModel;
-    use Api\Models\UserModel;
+    use Framework\Api\Data\DatabaseContext;
+    use Framework\Api\Data\DatabaseModel;
+    use Framework\Api\Data\DatabaseContextBuilder;
+    use Api\Data\Models\AccountModel;
+    use Api\Data\Models\UserModel;
 
     class DataContext extends DatabaseContext
     {

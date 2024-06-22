@@ -1,7 +1,7 @@
 <?php
     use Framework\Http\HttpRequest;
     use Framework\Http\HttpResponse;
-    use Framework\Middleware\RequestMiddleware;
+    use Framework\Middleware\RequestPipeline;
     use Framework\Middleware\StaticFilesMiddleware;
     use Framework\Middleware\ViewMiddleware;
     use Framework\Middleware\ApiMiddleware;
@@ -10,15 +10,15 @@
     {
         public function run()
         {
-            $middleware = new RequestMiddleware();
+            $pipeline = new RequestPipeline();
 
             # Register middlewares
-            $middleware->addMiddleware(StaticFilesMiddleware::class);
-            $middleware->addMiddleware(ViewMiddleware::class);
-            $middleware->addMiddleware(ApiMiddleware::class);
+            $pipeline->addMiddleware(StaticFilesMiddleware::class);
+            $pipeline->addMiddleware(ViewMiddleware::class);
+            $pipeline->addMiddleware(ApiMiddleware::class);
 
             $request = new HttpRequest($_SERVER);
-            $response = $middleware->handleRequest($request);
+            $response = $pipeline->handleRequest($request);
 
             $this->serveResponse($response);
         }

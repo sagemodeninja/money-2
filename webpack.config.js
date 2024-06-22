@@ -6,7 +6,7 @@ const FrameworkCompilerPlugin = require('./framework-compiler')
 
 module.exports = (_, {mode}) => {
     const isDevelopment = mode === 'development'
-    
+
     return {
         entry: autoload.loadEntries('./src'),
         output: {
@@ -15,7 +15,7 @@ module.exports = (_, {mode}) => {
             clean: true,
         },
         plugins: [
-            ...autoload.loadViews('./src/views'),
+            ...autoload.loadViews('./src/gen/views'),
             new MiniCssExtractPlugin({
                 filename: isDevelopment ? '[name].css' : '[name].[contenthash].css'
             }),
@@ -25,8 +25,7 @@ module.exports = (_, {mode}) => {
                     './src/index.php',
                     { from: './src/framework', to: 'framework' },
                     { from: './src/api', to: 'api' },
-                    { from: './src/static', to: 'static' },
-                    ...autoload.loadLayouts('./src'),
+                    { from: './src/static', to: 'static' }
                 ]
             }),
             new FrameworkCompilerPlugin()

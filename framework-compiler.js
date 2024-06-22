@@ -8,41 +8,37 @@ class FrameworkCompilerPlugin {
 
     apply(compiler) {
         const pluginName = 'FrameworkCompilerPlugin'
-        const { webpack } = compiler
-        const { Compilation } = webpack
-        const { RawSource } = webpack.sources
+        const { RawSource } = compiler.webpack.sources
 
+        /* Generate controller cache */
         compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
-            compilation.hooks.processAssets.tap(
+            compilation.hooks.processAssets.tapAsync(
                 {
                     name: pluginName,
-                    stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL
+                    stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE
                 },
-                (assets) => {
+                (_, callback) => {
                     const dir = path.join(this.options.source, 'api/controllers')
-                    
-                    fs.readdir(dir, (err, files) => {
-                        if (err) {
-                            throw err;
+                    const files = fs.readdirSync(dir)
+
+                    const controllers = files.reduce((result, file) => {
+                        const {name, ext} = path.parse(file)
+                        if (ext == '.php' && name.endsWith('-controller')) {
+                            const identifier = name.slice(0, -11).replace(/-/g, '')
+                            const className = name.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join('')
+
+                            result = { ...result, [identifier]: className }
                         }
 
-                        const controllers = files.reduce((result, file) => {
-                            const {name, ext} = path.parse(file)
-                            if (ext == '.php' && name.endsWith('-controller')) {
-                                const identifier = name.slice(0, -11).replace(/-/g, '')
-                                const className = name.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join('')
+                        return result;
+                    }, {})
 
-                                result = { ...result, [identifier]: className }
-                            }
+                    compilation.emitAsset(
+                        'api/controllers/controller_cache.json',
+                        new RawSource(JSON.stringify(controllers))
+                    )
 
-                            return result;
-                        }, {})
-
-                        compilation.emitAsset(
-                            'api/controllers/controller_cache.json',
-                            new RawSource(JSON.stringify(controllers))
-                        )
-                    })
+                    callback()
                 }
             )
         })

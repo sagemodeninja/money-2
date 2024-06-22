@@ -2,35 +2,21 @@ const fs = require('fs');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const fileTest = /^(view|layout)\.php(\.ts)?$/;
 const scriptTest = /\.ts$/;
 
-function lookupFiles(directory, route = '') {
-    const files = [];
-    const fileList = fs.readdirSync(directory);
+function lookupFiles(directory, mask) {
+    const files = fs.readdirSync(directory, {withFileTypes: true,recursive: true})
+    const filtered = files.filter(f => mask.test(f.name))
         
-    fileList.forEach(file => {
-        const name = path.join(route, file);
-        const filePath = path.join(directory, file);
+    return filtered.map(file => {
+        const fpath = path.join(file.path, file.name)
 
-        if (fs.statSync(filePath).isDirectory()) {
-            const subFiles = lookupFiles(filePath, name);
-            files.push(...subFiles);
-        }
-
-        if (fileTest.test(file)) {
-            const type = getFileType(file)
-            
-            files.push({
-                route,
-                type,
-                path: './' + filePath,
-                chunk: path.join(route, 'index')
-            });
+        return {
+            path: fpath,
+            route: file.path,
+            type: getFileType(file)
         }
     })
-
-    return files;
 }
 
 function getFileType(file) {
@@ -43,46 +29,31 @@ function getFileType(file) {
     return 'view'
 }
 
-function loadViews(directory) {
-    const files = lookupFiles(directory);
+function loadEntries(directory) {
+    const files = lookupFiles(directory, /^view.php.ts$/);
 
     return files
-            .filter(file => file.type === 'view')
+            .reduce((entries, file) => {
+                const chunk = file.route.replace('src/', '') + '/index'
+                const path = './' + file.path
+                return { ...entries, [chunk]: path}
+            }, {});
+}
+
+function loadViews(directory) {
+    const files = lookupFiles(directory, /^index.php$/);
+
+    return files
             .map(file => {
                 return new HtmlWebpackPlugin({
                     template: file.path,
-                    filename: path.join('views', file.route, 'index.php'),
-                    chunks: [file.chunk]
+                    filename: file.path.replace('src/gen/', ''),
+                    chunks: file.route.replace('src/gen/', '') + '/index'
                 })
             });
 }
 
-function loadEntries(directory) {
-    const files = lookupFiles(directory);
-
-    return files
-            .filter(file => file.type === 'entry')
-            .reduce((entries, file) => {
-                return { ...entries, [file.chunk]: file.path }
-            }, {});
-}
-
-function loadLayouts(directory) {
-    const files = lookupFiles(directory);
-
-    return files
-            .filter(file => file.type === 'layout')
-            .reduce((patterns, file) => {
-                const layout = path.join(file.route, 'layout.php')
-                return [ ...patterns, {
-                    from: file.path,
-                    to: layout
-                }]
-            }, []);
-}
-
 module.exports = {
-    loadViews,
     loadEntries,
-    loadLayouts
+    loadViews
 }

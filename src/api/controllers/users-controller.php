@@ -2,8 +2,8 @@
     namespace Api\Controllers;
 
     use Framework\Api\ControllerBase;
-    use Api\Data\DataContext;
     use Framework\Api\Attributes\Get;
+    use Api\Data\DataContext;
 
     class UsersController extends ControllerBase {
         private readonly DataContext $context;

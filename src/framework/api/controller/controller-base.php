@@ -1,5 +1,5 @@
 <?php
-    namespace Framework\Api;
+    namespace Framework\Api\Controller;
 
     use Framework\Http\HttpRequest;
     use Framework\Http\HttpResponse;
@@ -10,7 +10,9 @@
             $action = ControllerAction::getControllerAction($this, $request);
             
             if (!isset($action))
+            {
                 return $this->NotFound();
+            }
             
             return $action->handle($this, $request);
         }

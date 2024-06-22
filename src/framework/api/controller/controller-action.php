@@ -1,5 +1,5 @@
 <?php
-    namespace Framework\Api;
+    namespace Framework\Api\Controller;
 
     use ReflectionAttribute;
     use ReflectionObject;

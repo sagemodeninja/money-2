@@ -4,7 +4,7 @@
     use Framework\Http\HttpRequest;
     use ReflectionClass;
 
-    class RequestMiddleware
+    class RequestPipeline
     {
         private array $middlewares;
 

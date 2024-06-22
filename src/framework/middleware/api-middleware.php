@@ -9,7 +9,6 @@
     {
         public function invoke(HttpRequest $request)
         {
-            // api/[controller]/[route]
             $path = $request->path;
             $fragments = explode('/', $path);
             
