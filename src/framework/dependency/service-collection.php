@@ -6,25 +6,44 @@ use ReflectionClass;
 
 class ServiceCollection
 {
-    public array $services;
+    public array $services = [];
 
     /**
-     * Add a service to the collection.
+     * Adds a service to the collection.
      * 
-     * @param string $class The fully qualified class name of the service.
-     * @param callable $constructor A function called to manually
-     * create an instance of the service.
+     * @param string $service The fully qualified class name, an instance, or a
+     * function that returns an instance of the service.
      * 
      * @return ServiceCollection This collection instance.
      */
-    public function addService(string $class, callable $constructor = null)
+    public function addService(string|object|callable $service)
     {
+        $instance = null;
+
+        if (!is_string($service))
+        {
+            $instance = is_callable($service)
+                ? call_user_func($service, $this)
+                : $service;
+        }
+
+        $class = is_string($service)
+            ? $service
+            : get_class($instance);
+
         # Check for dependencies.
         $reflection = new ReflectionClass($class);
-        $parameters = $reflection->getConstructor()->getParameters();
+        $parameters = $reflection->getConstructor()
+            ? $reflection->getConstructor()->getParameters()
+            : [];
 
         $dependencies = array_map(
-            fn ($p) => self::resolveDependency($p),
+            function ($p) {
+                $type = $p->getType();
+                return isset($type) && !$type->isBuiltin()
+                    ? $type->getName()
+                    : null;
+            },
             $parameters
         );
 
@@ -32,6 +51,7 @@ class ServiceCollection
         foreach ($dependencies as $dependency)
         {
             if (isset($dependency) &&
+                $dependency != self::class &&
                 !array_key_exists($dependency, $this->services))
             {
                 $this->addService($dependency);
@@ -41,7 +61,7 @@ class ServiceCollection
         $this->services[$class] = new Service(
             $class,
             $dependencies,
-            $constructor,
+            $instance
         );
 
         return $this;
@@ -49,6 +69,11 @@ class ServiceCollection
 
     public function getService(string $class)
     {
+        if ($class == self::class)
+        {
+            return $this;
+        }
+
         $service = $this->services[$class] ?? null;
 
         if (!isset($service))
@@ -56,31 +81,30 @@ class ServiceCollection
             throw new Exception("The service '$class' was not registered on this collection.");
         }
 
-        # If service has a contructor, use it instead.
-        if (isset($service->constructor))
+        # If instance is alread present, return it.
+        if (isset($service->instance))
         {
-            return $service->constructor->call($this, [$this]);
+            return $service->instance;
         }
+        else
+        {
+            # Otherwise construct the service.
+            $reflection = new ReflectionClass($service->class);
 
-        # Otherwise construct the service.
-        $reflection = new ReflectionClass($service->class);
+            # Resolve dependencies. This process is recursive!
+            $args = array_map(
+                function ($dependency) {
+                    if (!isset($dependency)) return null;
 
-        # Resolve dependencies. This process is recursive!
-        $args = array_map(
-            fn ($dependency) => isset($dependency) ? $this->getService($dependency) : null,
-            $service->dependencies
-        );
+                    return $dependency != self::class
+                        ? $this->getService($dependency)
+                        : $this;
+                },
+                $service->dependencies
+            );
 
-        return $reflection->newInstance(...$args);
-    }
-
-    private static function resolveDependency($parameter)
-    {
-        $type = $parameter->getType();
-
-        return isset($type) && !$type->isBuiltin()
-            ? $type->getName()
-            : null;
+            return $reflection->newInstance(...$args);
+        }
     }
 }
 ?>

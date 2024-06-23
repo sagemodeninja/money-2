@@ -2,7 +2,6 @@ const path = require('path')
 const autoload = require('./autoload')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
-const FrameworkCompilerPlugin = require('./framework-compiler')
 
 module.exports = (_, {mode}) => {
     const isDevelopment = mode === 'development'
@@ -28,8 +27,7 @@ module.exports = (_, {mode}) => {
                     { from: './src/api', to: 'api' },
                     { from: './src/static', to: 'static' }
                 ]
-            }),
-            new FrameworkCompilerPlugin()
+            })
         ],
         module: {
             rules: [

@@ -1,19 +1,17 @@
 <?php
 namespace Framework\Dependency;
 
-use Closure;
-
 class Service
 {
     public string $class;
     public array $dependencies;
-    public ?Closure $constructor;
+    public mixed $instance;
     
-    public function __construct(string $class, array $dependencies, callable $constructor = null)
+    public function __construct(string $class, array $dependencies, mixed $instance)
     {
         $this->class = $class;
         $this->dependencies = $dependencies;
-        $this->constructor = $constructor;
+        $this->instance = $instance;
     }
 }
 ?>

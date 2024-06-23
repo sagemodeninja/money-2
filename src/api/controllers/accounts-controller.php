@@ -2,7 +2,7 @@
     namespace Api\Controllers;
 
     use Framework\Api\Controller\ControllerBase;
-    use Framework\Api\Attributes\{FromBody, FromFile, Get, Post};
+    use Framework\Api\Attributes\{FromBody,Get,Post};
     use Api\Data\DataContext;
     use Api\Data\Models\AccountModel;
 
