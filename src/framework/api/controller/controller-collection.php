@@ -11,7 +11,7 @@ class ControllerCollection
     public function __construct(ServiceCollection $services, array $controllers)
     {
         $this->services = $services;
-        $this->controllers = $controllers;    
+        $this->controllers = $controllers;
     }
 
     public static function load(ServiceCollection $services)

@@ -1,25 +1,46 @@
 <?php
-    namespace Framework\Http;
+namespace Framework\Http;
 
-    class HttpResponse
+class HttpResponse
+{
+    public int $statusCode;
+    public mixed $content;
+    public array $headers = [];
+
+    public function __construct(int $statusCode, mixed $content = null, string $contentType = null)
     {
-        public int $statusCode;
-        public mixed $content;
-        public array $headers;
+        $content = self::resolveContent($content);
 
-        public function __construct(int $statusCode, mixed $content = null)
-        {
-            $this->statusCode = $statusCode;
-            $this->content = $content;
-            $this->headers = [];
-        }
-
-        public function addHeader(string $name, string $value)
-        {
-            array_push($this->headers, [
-                'name' => $name,
-                'value' => $value
-            ]);
-        }
+        $this->statusCode = $statusCode;
+        $this->content = $content['content'];
+        
+        $this->addHeader('Content-Type', $contentType ?? $content['type']);
     }
+
+    public function addHeader(string $name, string $value)
+    {
+        $this->headers[] = [
+            'name' => $name,
+            'value' => $value
+        ];
+    }
+
+    private static function resolveContent(mixed $raw)
+    {
+        if (is_array($raw)) {
+            $type = 'application/json; charset=utf-8';
+            $content = json_encode(array_values($raw));
+        }
+        
+        if (is_object($raw)) {
+            $type = 'application/json; charset=utf-8';
+            $content = json_encode($raw);
+        }
+
+        return [
+            'type' => $type ?? 'text/html',
+            'content' => $content ?? strval($raw)
+        ];
+    }
+}
 ?>

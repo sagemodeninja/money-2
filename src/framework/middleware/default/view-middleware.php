@@ -1,39 +1,38 @@
 <?php
 namespace Framework\Middleware\Default;
 
-use Framework\Http\HttpRequest;
-use Framework\Http\HttpResponse;
+use Closure;
+use Framework\Http\{HttpRequest,HttpResponse};
 
 class ViewMiddleware
 {
-    private $next;
+    private Closure $next;
 
     public function __construct(callable $next)
     {
-        $this->next = $next;
+        $this->next = Closure::fromCallable($next);
     }
 
     public function invoke(HttpRequest $request)
     {
-        $path = $request->path;
+        $path = !empty($request->path) ? $request->path : 'home';
+        $fpath = implode(DIRECTORY_SEPARATOR, ['views', ...explode('/', $path), 'index.php']);
 
-        if (empty($path))
-        {
-            $path = 'home';
-        }
+        # Check if file exists and get it's absolute path.
+        if ($file = realpath($fpath)) {
+            $content = @file_get_contents($file);
+                
+            # If an error occured whle getting file content,
+            # return HTTP 500.
+            if ($content === false) {
+                return new HttpResponse(500, 'Internal Sever Error');
+            }
 
-        $nodes = explode('/', "views/$path");
-        $file = implode(DIRECTORY_SEPARATOR, [...$nodes, 'index.php']);
-
-        if (file_exists($file))
-        {
-            $content = file_get_contents($file);
             return new HttpResponse(200, $content);
         }
-        else
-        {
-            return call_user_func($this->next, $request);
-        }
+        
+        # Otherwise return HTTP 404
+        return $this->next->call($this, $request);
     }
 }
 ?>

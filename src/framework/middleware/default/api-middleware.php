@@ -15,16 +15,18 @@ class ApiMiddleware
 
     public function invoke(HttpRequest $request)
     {
-        $path = $request->path;
-        $fragments = explode('/', $path);
+        $path = strtolower($request->path);
+        $controller = str_replace('api/', '', $path);
         
-        if (count($fragments) < 2 || $fragments[0] != 'api' || !$this->controllers->exists($fragments[1]))
+        # Check if route is valid and if controller exists.
+        if (str_starts_with($path, 'api/') && $this->controllers->exists($controller))
         {
-            return new HttpResponse(404);
+            $instance = $this->controllers->getInstance($controller);
+            return $instance->handleRequest($request);
         }
 
-        $instance = $this->controllers->getInstance($fragments[1]);
-        return $instance->handleRequest($request);
+        # Otherwise return HTTP 404
+        return new HttpResponse(404);
     }
 }
 ?>
