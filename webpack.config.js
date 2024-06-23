@@ -23,6 +23,7 @@ module.exports = (_, {mode}) => {
                 patterns: [
                     './src/.htaccess',
                     './src/index.php',
+                    './src/app.php',
                     { from: './src/framework', to: 'framework' },
                     { from: './src/api', to: 'api' },
                     { from: './src/static', to: 'static' }
