@@ -1,7 +1,7 @@
 <?php
     namespace Framework\Middleware;
 
-    use Framework\Api\ControllerCollection;
+    use Framework\Api\Controller\ControllerCollection;
     use Framework\Http\HttpRequest;
     use Framework\Http\HttpResponse;
 

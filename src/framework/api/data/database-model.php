@@ -21,7 +21,7 @@
             return self::mapRowsToModel($this->class, $result);
         }
 
-        private function execute(string $query, ?array $params = null) {
+        public function execute(string $query, ?array $params = null) {
             $connection = &$this->connection;
 
             $statement = $connection->prepare($query);

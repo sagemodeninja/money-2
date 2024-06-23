@@ -1,7 +1,7 @@
 <?php
     namespace Api\Controllers;
 
-    use Framework\Api\ControllerBase;
+    use Framework\Api\Controller\ControllerBase;
     use Framework\Api\Attributes\Get;
     use Api\Data\DataContext;
 
