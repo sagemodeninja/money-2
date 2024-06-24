@@ -28,7 +28,10 @@ class ViewMiddleware
                 return new HttpResponse(500, 'Internal Sever Error');
             }
 
-            return new HttpResponse(200, $content);
+            # The contents of the view is evaluated.
+            $view = eval("?>$content<?php ");
+
+            return new HttpResponse(200, $view);
         }
         
         # Otherwise return HTTP 404

@@ -48,7 +48,7 @@ function loadViews(directory) {
                 return new HtmlWebpackPlugin({
                     template: file.path,
                     filename: file.path.replace('src/gen/', ''),
-                    chunks: file.route.replace('src/gen/', '') + '/index'
+                    chunks: [file.route.replace('src/gen/', '') + '/index']
                 })
             });
 }
