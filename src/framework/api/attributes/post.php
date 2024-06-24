@@ -1,8 +1,8 @@
 <?php
-    namespace Framework\Api\Attributes;
+namespace Framework\Api\Attributes;
 
-    use Attribute;
+use Attribute;
 
-    #[Attribute(Attribute::TARGET_METHOD)]
-    class Post extends HttpMethodAttribute {}
+#[Attribute(Attribute::TARGET_METHOD)]
+class Post extends HttpMethodAttribute {}
 ?>

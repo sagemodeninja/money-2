@@ -42,6 +42,7 @@ class QueryExpressions
         $results = [
             'where' => [],
             'pagination' => [],
+            'order' => [],
             'params' => [],
             'typedParams' => []
         ];

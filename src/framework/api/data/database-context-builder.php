@@ -1,31 +1,31 @@
 <?php
-    namespace Framework\Api\Data;
-    
-    use PDO;
+namespace Framework\Api\Data;
 
-    class DatabaseContextBuilder
+use PDO;
+
+class DatabaseContextBuilder
+{
+    private array $models;
+
+    public function addModel(string $class, string $model, string $table = null)
     {
-        private array $models;
+        $this->models[] = [
+            'class' => $class,
+            'model' => $model,
+            'table' => $table ?? $model
+        ];
+    }
 
-        public function addModel(string $class, string $model, string $table = null)
+    public function build(object &$context, PDO &$connection)
+    {
+        foreach ($this->models as $config)
         {
-            $this->models[] = [
-                'class' => $class,
-                'model' => $model,
-                'table' => $table ?? $model
-            ];
-        }
+            $class = $config['class'];
+            $model = $config['model'];
+            $table = $config['table'];
 
-        public function build(object &$context, PDO &$connection)
-        {
-            foreach ($this->models as $config)
-            {
-                $class = $config['class'];
-                $model = $config['model'];
-                $table = $config['table'];
-
-                $context->$model = new DatabaseModel($connection, $class, $table);
-            }
+            $context->$model = new DatabaseModel($connection, $class, $table);
         }
     }
+}
 ?>

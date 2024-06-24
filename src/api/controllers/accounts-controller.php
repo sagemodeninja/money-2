@@ -5,7 +5,6 @@ use Framework\Api\Controller\ControllerBase;
 use Framework\Api\Attributes\{FromBody,Get,Post};
 use Api\Data\DataContext;
 use Api\Data\Models\AccountModel;
-use Framework\Api\Data\Query\RowOrder;
 
 class AccountsController extends ControllerBase {
     private readonly DataContext $context;
@@ -17,20 +16,20 @@ class AccountsController extends ControllerBase {
 
     #[Get]
     public function getAll() {
-        $accounts = $this->context->accounts->orderBy([['Title'], ['Id', RowOrder::Descending]])->all();
+        $accounts = $this->context->accounts->where('status', 1)->all();
         return $this->Ok($accounts);
     }
 
     #[Get("{id}")]
     public function getById(int $id) {
-        $account = $this->context->accounts->where('Id', $id)->first();
+        $account = $this->context->accounts->where([['id', $id], ['status', 1]])->first();
         return $this->Ok($account);
     }
 
     #[Post]
     public function create(#[FromBody(AccountModel::class)] AccountModel $account)
     {
-        $query = 'INSERT INTO `account` (`Title`, `ShortCode`) VALUES (:title, :short_code)';
+        $query = 'INSERT INTO `account` (`title`, `shortCode`) VALUES (:title, :short_code)';
         $params = [
             ':title' => $account->title,
             ':short_code' => $account->shortCode

@@ -1,21 +1,18 @@
 <?php
-    namespace Api\Data;
+namespace Api\Data;
 
-    use Framework\Api\Data\DatabaseContext;
-    use Framework\Api\Data\DatabaseModel;
-    use Framework\Api\Data\DatabaseContextBuilder;
-    use Api\Data\Models\AccountModel;
-    use Api\Data\Models\UserModel;
+use Framework\Api\Data\{DatabaseContext,DatabaseModel,DatabaseContextBuilder};
+use Api\Data\Models\{AccountModel,UserModel};
 
-    class DataContext extends DatabaseContext
+class DataContext extends DatabaseContext
+{
+    public DatabaseModel $accounts;
+    public DatabaseModel $users;
+
+    public function configure(DatabaseContextBuilder $builder)
     {
-        public DatabaseModel $accounts;
-        public DatabaseModel $users;
-
-        public function configure(DatabaseContextBuilder $builder)
-        {
-            $builder->addModel(AccountModel::class, 'accounts', 'account');
-            $builder->addModel(UserModel::class, 'users');
-        }
+        $builder->addModel(AccountModel::class, 'accounts', table: 'account');
+        $builder->addModel(UserModel::class, 'users');
     }
+}
 ?>

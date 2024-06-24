@@ -1,32 +1,32 @@
 <?php
-    namespace Framework\Api\Data;
+namespace Framework\Api\Data;
 
-    use PDO;
+use PDO;
 
-    abstract class DatabaseContext
+abstract class DatabaseContext
+{
+    public function __construct()
     {
-        public function __construct()
-        {
-            $connection = self::connect();
-            $builder = new DatabaseContextBuilder();
+        $connection = self::connect();
+        $builder = new DatabaseContextBuilder();
 
-            $this->configure($builder);
-            $builder->build($this, $connection);
-        }
-
-        public static function connect()
-        {
-            $dbhost = getenv('MYSQL_HOST');
-            $dbuser = getenv('MYSQL_USER');
-            $dbpassword = getenv('MYSQL_PASSWORD');
-            $dbname = getenv('MYSQL_DATABASE');
-
-            $dsn = "mysql:host=$dbhost;dbname=$dbname;charset=utf8mb4";
-            $connection = new PDO($dsn, $dbuser, $dbpassword);
-
-            return $connection;
-        }
-
-        abstract protected function configure(DatabaseContextBuilder $builder);
+        $this->configure($builder);
+        $builder->build($this, $connection);
     }
+
+    public static function connect()
+    {
+        $dbhost = getenv('MYSQL_HOST');
+        $dbuser = getenv('MYSQL_USER');
+        $dbpassword = getenv('MYSQL_PASSWORD');
+        $dbname = getenv('MYSQL_DATABASE');
+
+        $dsn = "mysql:host=$dbhost;dbname=$dbname;charset=utf8mb4";
+        $connection = new PDO($dsn, $dbuser, $dbpassword);
+
+        return $connection;
+    }
+
+    abstract protected function configure(DatabaseContextBuilder $builder);
+}
 ?>
