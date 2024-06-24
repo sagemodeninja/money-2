@@ -29,7 +29,9 @@ class ViewMiddleware
             }
 
             # The contents of the view is evaluated.
-            $view = eval("?>$content<?php ");
+            ob_start();
+            eval("?>$content<?php ");
+            $view = ob_get_clean();
 
             return new HttpResponse(200, $view);
         }

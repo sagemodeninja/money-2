@@ -24,7 +24,7 @@ class App
             $builder->addMiddleware(ApiMiddleware::class);
         });
 
-        $this->services->addService(DataContext::class);
+        $this->services->addService(new DataContext());
 
         addControllers($this->services);
 

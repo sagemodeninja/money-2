@@ -5,7 +5,8 @@ use Framework\Api\Controller\ControllerBase;
 use Framework\Api\Attributes\Get;
 use Api\Data\DataContext;
 
-class UsersController extends ControllerBase {
+class UsersController extends ControllerBase
+{
     private readonly DataContext $context;
 
     public function __construct()

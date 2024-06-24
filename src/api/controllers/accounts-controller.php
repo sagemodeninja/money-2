@@ -6,8 +6,9 @@ use Framework\Api\Attributes\{FromBody,Get,Post};
 use Api\Data\DataContext;
 use Api\Data\Models\AccountModel;
 
-class AccountsController extends ControllerBase {
-    private readonly DataContext $context;
+class AccountsController extends ControllerBase
+{
+    private DataContext $context;
 
     public function __construct(DataContext $context)
     {

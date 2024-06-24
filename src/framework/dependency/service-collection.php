@@ -69,25 +69,20 @@ class ServiceCollection
 
     public function getService(string $class)
     {
-        if ($class == self::class)
-        {
+        if ($class == self::class) {
             return $this;
         }
 
         $service = $this->services[$class] ?? null;
 
-        if (!isset($service))
-        {
+        if (!isset($service)) {
             throw new Exception("The service '$class' was not registered on this collection.");
         }
 
         # If instance is alread present, return it.
-        if (isset($service->instance))
-        {
+        if (isset($service->instance)) {
             return $service->instance;
-        }
-        else
-        {
+        } else {
             # Otherwise construct the service.
             $reflection = new ReflectionClass($service->class);
 
