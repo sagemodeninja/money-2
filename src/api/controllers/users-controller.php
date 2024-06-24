@@ -15,8 +15,7 @@ class UsersController extends ControllerBase {
 
     #[Get]
     public function GetAll() {
-        $query = 'SELECT u.`Id`, u.`EmailAddress` FROM `users` u;';
-        $users = $this->context->users->fetchAll($query);
+        $users = $this->context->users->all();
         return $this->Ok($users);
     }
 }

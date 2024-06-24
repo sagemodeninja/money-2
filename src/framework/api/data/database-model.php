@@ -3,7 +3,7 @@ namespace Framework\Api\Data;
 
 use Exception;
 use PDO;
-use Framework\Api\Data\{QueryExpressions,WhereExpression,PaginationExpression};
+use Framework\Api\Data\Query\{OrderExpression,QueryExpressions,WhereExpression,PaginationExpression,RowOrder};
 
 class DatabaseModel
 {
@@ -23,11 +23,14 @@ class DatabaseModel
         $this->expressions = new QueryExpressions();
     }
 
-    public function where(string $field, mixed $value)
+    public function where(string|array $field, mixed $operatorOrValue = null, mixed $value = null)
     {
-        $expression = new WhereExpression($field, '=', $value);
-        $this->expressions->add('where', $expression);
-        return $this;
+        return $this->_where($field, $operatorOrValue, $value, 'AND');
+    }
+
+    public function orWhere(string|array $field, mixed $operatorOrValue = null, mixed $value = null)
+    {
+        return $this->_where($field, $operatorOrValue, $value, 'OR');
     }
 
     public function top(int $top)
@@ -41,7 +44,7 @@ class DatabaseModel
     public function skip(int $skip)
     {
         if (!$this->hasTopExpression) {
-            throw new Exception('Method skip() can only be used after a top().');
+            throw new Exception('Method skip() can only be used after a top() invokation.');
         }
 
         $expression = new PaginationExpression('OFFSET', $skip);
@@ -49,9 +52,23 @@ class DatabaseModel
         return $this;
     }
 
+    public function orderBy(string|array $field, ?RowOrder $order = null) {
+        $blocks = is_string($field)
+            ? [[$field, $order]]
+            : $field;
+
+        foreach ($blocks as $block)
+        {
+            $expression = new OrderExpression($block[0], $block[1] ?? RowOrder::Ascending);
+            $this->expressions->add('order', $expression);
+        }
+
+        return $this;
+    }
+
     public function all()
     {
-        $statement = $this->exececuteExpression();
+        $statement = $this->executeExpression();
         $result = $statement->fetchAll();
         return self::rowsToModel($this->class, $result);
     }
@@ -59,18 +76,19 @@ class DatabaseModel
     public function first()
     {
         $this->top(1);
-        $statement = $this->exececuteExpression();
+        $statement = $this->executeExpression();
         $result = $statement->fetch();
         return self::rowToModel($this->class, $result);
     }
 
-    public function exececuteExpression()
+    public function executeExpression()
     {
         $query = $this->expressions->build($this->table);
         return self::execute($query['query'], $query['params'], $query['typedParams']);
     }
 
-    public function execute(string $query, array $params = [], array $typedParams = []) {
+    public function execute(string $query, array $params = [], array $typedParams = [])
+    {
         $connection = &$this->connection;
         $statement = $connection->prepare($query);
 
@@ -89,6 +107,22 @@ class DatabaseModel
 
         $statement->execute();
         return $statement;
+    }
+
+    private function _where(string|array $field, mixed $operatorOrValue, mixed $value, string $logic)
+    {
+        $blocks = is_string($field)
+            ? [[$field, $operatorOrValue, $value]]
+            : $field;
+
+        foreach ($blocks as $block)
+        {
+            $operator = isset($block[2]) ? $block[1] : '=';
+            $expression = new WhereExpression($block[0], $operator, $block[2] ?? $block[1], $logic);
+            $this->expressions->add('where', $expression);
+        }
+
+        return $this;
     }
 
     private static function rowsToModel($model, $rows)

@@ -5,6 +5,7 @@ use Framework\Api\Controller\ControllerBase;
 use Framework\Api\Attributes\{FromBody,Get,Post};
 use Api\Data\DataContext;
 use Api\Data\Models\AccountModel;
+use Framework\Api\Data\Query\RowOrder;
 
 class AccountsController extends ControllerBase {
     private readonly DataContext $context;
@@ -16,7 +17,7 @@ class AccountsController extends ControllerBase {
 
     #[Get]
     public function getAll() {
-        $accounts = $this->context->accounts->where('Status', 1)->all();
+        $accounts = $this->context->accounts->orderBy([['Title'], ['Id', RowOrder::Descending]])->all();
         return $this->Ok($accounts);
     }
 

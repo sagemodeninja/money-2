@@ -1,5 +1,5 @@
 <?php
-namespace Framework\Api\Data;
+namespace Framework\Api\Data\Query;
 
 interface Expression
 {
