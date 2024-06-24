@@ -7,11 +7,12 @@
     {
         private array $models;
 
-        public function addModel(string $model, string $class)
+        public function addModel(string $class, string $model, string $table = null)
         {
             $this->models[] = [
+                'class' => $class,
                 'model' => $model,
-                'class' => $class
+                'table' => $table ?? $model
             ];
         }
 
@@ -19,10 +20,11 @@
         {
             foreach ($this->models as $config)
             {
-                $model = $config['model'];
                 $class = $config['class'];
+                $model = $config['model'];
+                $table = $config['table'];
 
-                $context->$model = new DatabaseModel($class, $connection);
+                $context->$model = new DatabaseModel($connection, $class, $table);
             }
         }
     }

@@ -16,9 +16,14 @@ class AccountsController extends ControllerBase {
 
     #[Get]
     public function getAll() {
-        $query = 'SELECT a.`Id`, a.`Shortcode`, a.`Title`, a.`CategoryId`, a.`AccountNumber`, a.`BankIcon` FROM `account` a WHERE a.`Status` = 1;';
-        $accounts = $this->context->accounts->fetchAll($query);
+        $accounts = $this->context->accounts->where('Status', 1)->top(2)->all();
         return $this->Ok($accounts);
+    }
+
+    #[Get("{id}")]
+    public function getById(int $id) {
+        $account = $this->context->accounts->where('Id', $id)->first();
+        return $this->Ok($account);
     }
 
     #[Post]

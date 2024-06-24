@@ -16,7 +16,7 @@ class ApiMiddleware
     public function invoke(HttpRequest $request)
     {
         $path = strtolower($request->path);
-        $controller = str_replace('api/', '', $path);
+        $controller = explode('/', $path)[1];
         
         # Check if route is valid and if controller exists.
         if (str_starts_with($path, 'api/') && $this->controllers->exists($controller))

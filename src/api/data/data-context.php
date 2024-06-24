@@ -14,8 +14,8 @@
 
         public function configure(DatabaseContextBuilder $builder)
         {
-            $builder->addModel('accounts', AccountModel::class);
-            $builder->addModel('users', UserModel::class);
+            $builder->addModel(AccountModel::class, 'accounts', 'account');
+            $builder->addModel(UserModel::class, 'users', 'user');
         }
     }
 ?>
