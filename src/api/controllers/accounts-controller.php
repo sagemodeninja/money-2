@@ -16,7 +16,7 @@ class AccountsController extends ControllerBase {
 
     #[Get]
     public function getAll() {
-        $accounts = $this->context->accounts->where('Status', 1)->top(2)->all();
+        $accounts = $this->context->accounts->where('Status', 1)->all();
         return $this->Ok($accounts);
     }
 

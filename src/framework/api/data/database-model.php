@@ -67,10 +67,10 @@ class DatabaseModel
     public function exececuteExpression()
     {
         $query = $this->expressions->build($this->table);
-        return self::execute($query['query'], [], $query['params']);
+        return self::execute($query['query'], $query['params'], $query['typedParams']);
     }
 
-    public function execute(string $query, ?array $params = null, ?array $typedParams = null) {
+    public function execute(string $query, array $params = [], array $typedParams = []) {
         $connection = &$this->connection;
         $statement = $connection->prepare($query);
 
@@ -79,7 +79,7 @@ class DatabaseModel
             $statement->bindValue($name, $value);
         }
 
-        foreach ($typedParams ?? [] as $param) {
+        foreach ($typedParams as $param) {
             $statement->bindValue(
                 $param['name'],
                 $param['value'],

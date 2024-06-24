@@ -19,19 +19,30 @@ class QueryExpressions
         $results = [
             'where' => [],
             'pagination' => [],
-            'params' => []
+            'params' => [],
+            'typedParams' => []
         ];
 
         foreach ($this->expressions as $expression)
         {
             $result = $expression['expression']->build();
-            $results[$expression['type']][] = $result['clause'];
-            $results['params'][] = $result['param'];
+            
+            $type = $expression['type'];
+            $results[$type][] = $result['clause'];
+
+            if (array_key_exists('param', $result)) {
+                $results['params'] += $result['param'];
+            }
+
+            if (array_key_exists('typedParam', $result)) {
+                $results['typedParams'][] = $result['typedParam'];
+            }
         }
 
         return [
             'query' => "SELECT * FROM " . $table . ' WHERE ' . implode(' AND ', $results['where']) . ' ' . implode(' ', $results['pagination']),
-            'params' => $results['params']
+            'params' => $results['params'],
+            'typedParams' => $results['typedParams'],
         ];
     }
 }

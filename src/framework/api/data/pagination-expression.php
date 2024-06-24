@@ -21,7 +21,7 @@ class PaginationExpression implements Expression
 
         return [
             'clause' => "$token $param",
-            'param' => [
+            'typedParam' => [
                 'name' => $param,
                 'value' => $this->value,
                 'type' => PDO::PARAM_INT

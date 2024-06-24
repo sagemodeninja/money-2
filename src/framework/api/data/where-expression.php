@@ -27,11 +27,7 @@ class WhereExpression implements Expression
 
         return [
             'clause' => "`$field` " . $this->operator . " $param",
-            'param' => [
-                'name' => $param,
-                'value' => $this->value,
-                'type' => self::getValueType($this->value)
-            ]
+            'param' => [$param => $this->value]
         ];
     }
 
