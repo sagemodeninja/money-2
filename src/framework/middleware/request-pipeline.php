@@ -1,9 +1,11 @@
 <?php
 namespace Framework\Middleware;
 
+use Exception;
 use ReflectionClass;
 use Framework\Dependency\ServiceCollection;
 use Framework\Http\HttpRequest;
+use Framework\Http\HttpResponse;
 
 class RequestPipeline
 {
@@ -18,21 +20,29 @@ class RequestPipeline
 
     public function handleRequest(HttpRequest $request)
     {
-        $current = null;
-
-        foreach ($this->middlewares as $middleware)
+        try
         {
-            $next = isset($current) ? function ($request) use ($current) {
-                return $current->invoke($request);
-            } : null;
+            $current = null;
 
-            $current = $this->constructMiddleware($middleware, $next);
+            foreach ($this->middlewares as $middleware)
+            {
+                $next = isset($current) ? function ($request) use ($current) {
+                    return $current->invoke($request);
+                } : null;
+    
+                $current = $this->constructMiddleware($middleware, $next);
+            }
+            
+            return $current->invoke($request);
         }
-        
-        return $current->invoke($request);
+        catch (Exception $e)
+        {
+            return new HttpResponse(500, $e->getMessage());
+        }
     }
 
-    private function constructMiddleware(string $class, callable $next = null) {
+    private function constructMiddleware(string $class, callable $next = null)
+    {
         $reflection = new ReflectionClass($class);
 
         $parameters = $reflection->getConstructor()
