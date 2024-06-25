@@ -1,7 +1,7 @@
 <?php
 namespace Framework\Api\Data\Query;
 
-class QueryExpressions
+class SelectQuery
 {
     private array $expressions = [];
 

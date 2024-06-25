@@ -2,7 +2,7 @@
 namespace Api\Controllers;
 
 use Framework\Api\Controller\ControllerBase;
-use Framework\Api\Attributes\{FromBody, Post,Get};
+use Framework\Api\Attributes\{Get,Post,Patch,Delete,FromBody};
 use Api\Data\DataContext;
 use Api\Data\Models\WalletModel;
 
@@ -25,14 +25,26 @@ class WalletsController extends ControllerBase
     #[Post]
     public function create(#[FromBody(WalletModel::class)] WalletModel $wallet)
     {
-        $query = 'INSERT INTO `wallet` (`UserId`, `DisplayName`) VALUES (:user_id, :display_name)';
-        $params = [
-            ':user_id' => $wallet->userId,
-            ':display_name' => $wallet->displayName
-        ];
-
-        $this->context->wallets->execute($query, $params);
+        $this->context->wallets->add($wallet)->save();
         return $this->Created();
+    }
+
+    #[Patch("{id}")]
+    public function update(int $id, #[FromBody(WalletModel::class)] WalletModel $wallet)
+    {
+        $model = $this->context->wallets->where([['Id', $id],['Status',1]])->first();
+        $model->displayName = $wallet->displayName;
+        $this->context->wallets->save();
+        return $this->Ok($model);
+    }
+
+    #[Delete("{id}")]
+    public function delete(int $id)
+    {
+        $model = $this->context->wallets->where([['Id', $id],['Status',1]])->first();
+        $model->status = 0;
+        $this->context->wallets->save();
+        return $this->NoContent();
     }
 }
 ?>

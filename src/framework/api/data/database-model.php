@@ -1,9 +1,13 @@
 <?php
+# TODO: This script is getting big, might want to start refactoring.
+
 namespace Framework\Api\Data;
 
 use Exception;
 use PDO;
-use Framework\Api\Data\Query\{OrderExpression,QueryExpressions,WhereExpression,PaginationExpression,RowOrder};
+use ReflectionClass;
+use Framework\Api\Data\Query\{InsertQuery, OrderExpression,SelectQuery,WhereExpression,PaginationExpression,RowOrder, UpdateQuery};
+use ReflectionProperty;
 
 class DatabaseModel
 {
@@ -11,8 +15,9 @@ class DatabaseModel
     private string $class;
     private string $table;
 
-    private QueryExpressions $expressions;
-    private bool $hasTopExpression = false;
+    private SelectQuery $queries;
+    private array $modelsForInsertion = [];
+    private array $trackedModels = [];
 
     public function __construct(PDO &$connection, string $class, string $table)
     {
@@ -20,7 +25,7 @@ class DatabaseModel
         $this->class = $class;
         $this->table = $table;
 
-        $this->expressions = new QueryExpressions();
+        $this->queries = new SelectQuery();
     }
 
     public function where(string|array $field, mixed $operatorOrValue = null, mixed $value = null)
@@ -36,19 +41,14 @@ class DatabaseModel
     public function top(int $top)
     {
         $expression = new PaginationExpression('LIMIT', $top);
-        $this->expressions->add('pagination', $expression);
-        $this->hasTopExpression = true;
+        $this->queries->add('pagination', $expression);
         return $this;
     }
 
     public function skip(int $skip)
     {
-        if (!$this->hasTopExpression) {
-            throw new Exception('Method skip() can only be used after a top() invokation.');
-        }
-
         $expression = new PaginationExpression('OFFSET', $skip);
-        $this->expressions->add('pagination', $expression);
+        $this->queries->add('pagination', $expression);
         return $this;
     }
 
@@ -60,7 +60,7 @@ class DatabaseModel
         foreach ($blocks as $block)
         {
             $expression = new OrderExpression($block[0], $block[1] ?? RowOrder::Ascending);
-            $this->expressions->add('order', $expression);
+            $this->queries->add('order', $expression);
         }
 
         return $this;
@@ -76,14 +76,75 @@ class DatabaseModel
     public function first()
     {
         $this->top(1);
+
         $statement = $this->executeExpression();
         $result = $statement->fetch();
-        return self::rowToModel($this->class, $result);
+        $model = self::rowToModel($this->class, $result);
+
+        # Track model
+        $this->trackedModels[] = [
+            'original' => clone $model,
+            'tracked' => $model
+        ];
+
+        return $model;
+    }
+
+    public function add(object $model)
+    {
+        if (($class = get_class($model)) != $this->class) {
+            throw new Exception("Cannot add an instance of '$class' to table '" . $this->table . "'.");
+        }
+
+        $this->modelsForInsertion[] = $model;
+
+        return $this;
+    }
+
+    public function save()
+    {
+        foreach ($this->modelsForInsertion as $model)
+        {
+            $query = new InsertQuery($model);
+            $result = $query->build($this->table);
+
+            self::execute($result['query'], $result['params']);
+        }
+
+        # Tracked models
+        foreach ($this->trackedModels as $model)
+        {
+            $original = $model['original'];
+            $tracked = $model['tracked'];
+
+            if (count($changes =  self::getModelChanges($original, $tracked)) > 0) {
+                $query = new UpdateQuery($changes);
+                $result = $query->build($this->table, $original->id);
+                self::execute($result['query'], $result['params']);
+            }
+        }
+    }
+
+    private static function getModelChanges($old, $new)
+    {
+        $changes = [];
+
+        $reflection = new ReflectionClass($old);
+        $properies = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
+
+        foreach ($properies as $property)
+        {
+            if ($property->getValue($old) !== ($nval = $property->getValue($new))) {
+                $changes[$property->getName()] = $nval;
+            }
+        }
+
+        return $changes;
     }
 
     public function executeExpression()
     {
-        $query = $this->expressions->build($this->table);
+        $query = $this->queries->build($this->table);
         return self::execute($query['query'], $query['params'], $query['typedParams']);
     }
 
@@ -119,7 +180,7 @@ class DatabaseModel
         {
             $operator = isset($block[2]) ? $block[1] : '=';
             $expression = new WhereExpression($block[0], $operator, $block[2] ?? $block[1], $logic);
-            $this->expressions->add('where', $expression);
+            $this->queries->add('where', $expression);
         }
 
         return $this;
