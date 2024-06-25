@@ -1,21 +1,23 @@
 <?php
 namespace Framework\Api\Data\Query;
 
-class UpdateQuery
+class UpdateQueryBuilder implements IQueryBuilder
 {
+    private int $id;
     private array $changes;
 
-    public function __construct(array $changes)
+    public function __construct(int $id, array $changes)
     {
+        $this->id = $id;
         $this->changes = $changes;
     }
 
     /* This method breaks the pattern for now by accepting a 2nd parameter until I figure
      out how to handle the WHERE clause of updates. */
-    public function build(string $table, int $id)
+    public function build(string $table)
     {
         $expressions = [];
-        $params = [':u_primary_key' => $id];
+        $params = [':u_primary_key' => $this->id];
 
         foreach ($this->changes as $name => $value)
         {
@@ -23,14 +25,17 @@ class UpdateQuery
             $param = self::getFieldParam($name);
             
             $expressions[] = "`$field` = $param";
-            $params += [$param => $value];
+            $params[] = [
+                'name' => $param,
+                'value' => $value
+            ];
         }
 
         # Id is assumed to be the primary key for now.
         $query = "UPDATE $table SET " . implode(', ', $expressions) . " WHERE `Id` = :u_primary_key";
 
         return [
-            'query' => $query,
+            'statement' => $query,
             'params' => $params
         ];
     }

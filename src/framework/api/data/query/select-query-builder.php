@@ -1,7 +1,7 @@
 <?php
 namespace Framework\Api\Data\Query;
 
-class SelectQuery
+class SelectQueryBuilder implements IQueryBuilder
 {
     private array $expressions = [];
 
@@ -22,18 +22,18 @@ class SelectQuery
             $query .= ' WHERE ' . implode(' ', $clauses);
         }
 
-        if (count($clauses = $expressions['pagination']) > 0) {
-            $query .= ' ' . implode(' ', $clauses);
-        }
-
         if (count($clauses = $expressions['order']) > 0) {
             $query .= ' ORDER BY ' . implode(', ', $clauses);
         }
 
+        if (count($clauses = $expressions['pagination']) > 0) {
+            sort($clauses); # Makes sure that LIMIT comes first.
+            $query .= ' ' . implode(' ', $clauses);
+        }
+
         return [
-            'query' => $query,
-            'params' => $expressions['params'],
-            'typedParams' => $expressions['typedParams'],
+            'statement' => $query,
+            'params' => $expressions['params']
         ];
     }
 
@@ -43,8 +43,7 @@ class SelectQuery
             'where' => [],
             'pagination' => [],
             'order' => [],
-            'params' => [],
-            'typedParams' => []
+            'params' => []
         ];
 
         foreach ($expressions as $expression)
@@ -55,11 +54,7 @@ class SelectQuery
             $results[$type][] = $result['clause'];
 
             if (isset($result['param'])) {
-                $results['params'] += $result['param'];
-            }
-
-            if (isset($result['typedParam'])) {
-                $results['typedParams'][] = $result['typedParam'];
+                $results['params'][] = $result['param'];
             }
         }
 

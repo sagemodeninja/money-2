@@ -1,8 +1,6 @@
 <?php
 namespace Framework\Api\Data\Query;
 
-use Exception;
-
 class WhereExpression implements Expression
 {
     # Used to keep track of known params.
@@ -17,17 +15,13 @@ class WhereExpression implements Expression
 
     public function __construct(string $field, string $operator, mixed $value, string $logic)
     {
-        if ($logic == 'OR' && !WhereExpression::$hasInstance) {
-            throw new Exception("The logic 'OR' cannot be used on the first where expression.");
-        }
-
         $this->field = $field;
         $this->operator = $operator;
         $this->value = $value;
         $this->logic = $logic;
         $this->first = !WhereExpression::$hasInstance;
 
-        # Subsequent instances will not be first.
+        # Subsequent instances will not be marked as first.
         WhereExpression::$hasInstance = true;
     }
 
@@ -39,7 +33,10 @@ class WhereExpression implements Expression
 
         return [
             'clause' => implode(' ', [ $logic, "`$field`", $this->operator, $param]),
-            'param' => [$param => $this->value]
+            'param' => [
+                'name' => $param,
+                'value' => $this->value
+            ]
         ];
     }
 

@@ -4,7 +4,7 @@ namespace Framework\Api\Data\Query;
 use ReflectionClass;
 use ReflectionProperty;
 
-class InsertQuery
+class InsertQueryBuilder implements IQueryBuilder
 {
     private object $model;
 
@@ -38,13 +38,16 @@ class InsertQuery
             
             $fields[] = "`$field`";
             $paramNames[] = $param;
-            $params += [$param => $value];
+            $params[] = [
+                'name' => $param,
+                'value' => $value
+            ];
         }
 
         $query = "INSERT INTO $table (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $paramNames) . ")";
 
         return [
-            'query' => $query,
+            'statement' => $query,
             'params' => $params
         ];
     }

@@ -6,7 +6,8 @@ namespace Framework\Api\Data;
 use Exception;
 use PDO;
 use ReflectionClass;
-use Framework\Api\Data\Query\{InsertQuery, OrderExpression,SelectQuery,WhereExpression,PaginationExpression,RowOrder, UpdateQuery};
+use Framework\Api\Data\Query\{InsertQueryBuilder,UpdateQueryBuilder,SelectQueryBuilder};
+use Framework\Api\Data\Query\{IQueryBuilder,OrderExpression,WhereExpression,PaginationExpression,RowOrder};
 use ReflectionProperty;
 
 class DatabaseModel
@@ -15,7 +16,7 @@ class DatabaseModel
     private string $class;
     private string $table;
 
-    private SelectQuery $queries;
+    private SelectQueryBuilder $queries;
     private array $modelsForInsertion = [];
     private array $trackedModels = [];
 
@@ -24,8 +25,7 @@ class DatabaseModel
         $this->connection = $connection;
         $this->class = $class;
         $this->table = $table;
-
-        $this->queries = new SelectQuery();
+        $this->queries = new SelectQueryBuilder();
     }
 
     public function where(string|array $field, mixed $operatorOrValue = null, mixed $value = null)
@@ -66,30 +66,6 @@ class DatabaseModel
         return $this;
     }
 
-    public function all()
-    {
-        $statement = $this->executeExpression();
-        $result = $statement->fetchAll();
-        return self::rowsToModel($this->class, $result);
-    }
-
-    public function first()
-    {
-        $this->top(1);
-
-        $statement = $this->executeExpression();
-        $result = $statement->fetch();
-        $model = self::rowToModel($this->class, $result);
-
-        # Track model
-        $this->trackedModels[] = [
-            'original' => clone $model,
-            'tracked' => $model
-        ];
-
-        return $model;
-    }
-
     public function add(object $model)
     {
         if (($class = get_class($model)) != $this->class) {
@@ -101,14 +77,38 @@ class DatabaseModel
         return $this;
     }
 
+    # Terminators - Executes the query builders.
+    public function all()
+    {
+        $statement = $this->executeQuery($this->queries);
+        $result = $statement->fetchAll();
+        return self::rowsToModel($this->class, $result);
+    }
+
+    public function first()
+    {
+        $this->top(1);
+
+        $statement = $this->executeQuery($this->queries);
+        $result = $statement->fetch();
+        $model = self::rowToModel($this->class, $result);
+
+        # Track model
+        $this->trackedModels[] = [
+            'original' => clone $model,
+            'tracked' => $model,
+            'persisted' => true
+        ];
+
+        return $model;
+    }
+
     public function save()
     {
         foreach ($this->modelsForInsertion as $model)
         {
-            $query = new InsertQuery($model);
-            $result = $query->build($this->table);
-
-            self::execute($result['query'], $result['params']);
+            $query = new InsertQueryBuilder($model);
+            $this->executeQuery($query);
         }
 
         # Tracked models
@@ -118,52 +118,32 @@ class DatabaseModel
             $tracked = $model['tracked'];
 
             if (count($changes =  self::getModelChanges($original, $tracked)) > 0) {
-                $query = new UpdateQuery($changes);
-                $result = $query->build($this->table, $original->id);
-                self::execute($result['query'], $result['params']);
+                $query = new UpdateQueryBuilder($original->id, $changes);
+                self::executeQuery($query);
             }
         }
     }
 
-    private static function getModelChanges($old, $new)
-    {
-        $changes = [];
-
-        $reflection = new ReflectionClass($old);
-        $properies = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
-
-        foreach ($properies as $property)
-        {
-            if ($property->getValue($old) !== ($nval = $property->getValue($new))) {
-                $changes[$property->getName()] = $nval;
-            }
-        }
-
-        return $changes;
-    }
-
-    public function executeExpression()
-    {
-        $query = $this->queries->build($this->table);
-        return self::execute($query['query'], $query['params'], $query['typedParams']);
-    }
-
-    public function execute(string $query, array $params = [], array $typedParams = [])
+    private function executeQuery(IQueryBuilder $builder)
     {
         $connection = &$this->connection;
-        $statement = $connection->prepare($query);
+        
+        $query = $builder->build($this->table);
+        $statement = $connection->prepare($query['statement']);
 
-        # TODO: Merge with typed params
-        foreach ($params as $name => $value) {
-            $statement->bindValue($name, $value);
-        }
-
-        foreach ($typedParams as $param) {
-            $statement->bindValue(
-                $param['name'],
-                $param['value'],
-                $param['type']
-            );
+        foreach ($query['params'] as $param) {
+            if (isset($param['type'])) {
+                $statement->bindValue(
+                    $param['name'],
+                    $param['value'],
+                    $param['type']
+                );
+            } else {
+                $statement->bindValue(
+                    $param['name'],
+                    $param['value']
+                );
+            }
         }
 
         $statement->execute();
@@ -184,6 +164,23 @@ class DatabaseModel
         }
 
         return $this;
+    }
+
+    private static function getModelChanges($old, $new)
+    {
+        $changes = [];
+
+        $reflection = new ReflectionClass($old);
+        $properies = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
+
+        foreach ($properies as $property)
+        {
+            if ($property->getValue($old) !== ($nval = $property->getValue($new))) {
+                $changes[$property->getName()] = $nval;
+            }
+        }
+
+        return $changes;
     }
 
     private static function rowsToModel($model, $rows)

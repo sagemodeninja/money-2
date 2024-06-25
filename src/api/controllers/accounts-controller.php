@@ -30,13 +30,13 @@ class AccountsController extends ControllerBase
     #[Post]
     public function create(#[FromBody(AccountModel::class)] AccountModel $account)
     {
-        $query = 'INSERT INTO `account` (`title`, `shortCode`) VALUES (:title, :short_code)';
-        $params = [
-            ':title' => $account->title,
-            ':short_code' => $account->shortCode
-        ];
+        // $query = 'INSERT INTO `account` (`title`, `shortCode`) VALUES (:title, :short_code)';
+        // $params = [
+        //     ':title' => $account->title,
+        //     ':short_code' => $account->shortCode
+        // ];
 
-        $this->context->accounts->execute($query, $params);
+        // $this->context->accounts->execute($query, $params);
         return $this->Created();
     }
 }
